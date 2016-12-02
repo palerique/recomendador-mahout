@@ -13,7 +13,7 @@ import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 /**
  * Criado por ph em 12/2/16.
  */
-public class RecomendadorDeProdutosBuilder implements RecommenderBuilder {
+public class RecomendadorBuilder implements RecommenderBuilder {
     public Recommender buildRecommender(DataModel dataModel) throws TasteException {
         UserSimilarity similarity = new PearsonCorrelationSimilarity(dataModel);
         UserNeighborhood neighborhood = new ThresholdUserNeighborhood(0.1, similarity, dataModel);

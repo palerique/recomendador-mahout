@@ -1,4 +1,4 @@
-package br.com.sitedoph;
+package br.com.sitedoph.machineLearningIntroducaoAosSistemasDeRecomendacoes;
 
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.model.DataModel;

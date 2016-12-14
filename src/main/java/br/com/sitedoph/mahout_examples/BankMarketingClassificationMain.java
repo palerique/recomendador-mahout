@@ -51,30 +51,7 @@ public class BankMarketingClassificationMain {
 
             List<TelephoneCall> testUnknownData = new ArrayList<>();
 
-            TelephoneCall example = trainData.get(0);
-
-            List<String> values = new ArrayList<>();
-
-            values.add("54");
-            values.add("technician");
-            values.add("divorced");
-            values.add("postgraduate");
-            values.add("no");
-            values.add("1904");
-            values.add("yes");
-            values.add("yes");
-            values.add("unknown");
-            values.add("7");
-            values.add("may");
-            values.add("280");
-            values.add("3");
-            values.add("-1");
-            values.add("0");
-            values.add("unknown");
-            values.add("unknown");
-
-            TelephoneCall a = new TelephoneCall(example.getFieldNames(), values);
-            testUnknownData.add(a);
+            testUnknownData.add(getUnknownTelephoneCall(trainData));
 
             OnlineLogisticRegression lr = new OnlineLogisticRegression(NUM_CATEGORIES, TelephoneCall.FEATURES, new L1())
                     .learningRate(1)
@@ -101,11 +78,37 @@ public class BankMarketingClassificationMain {
         }
     }
 
+    private static TelephoneCall getUnknownTelephoneCall(List<TelephoneCall> trainData) {
+        TelephoneCall example = trainData.get(0);
+
+        List<String> values = new ArrayList<>();
+
+        values.add("54");
+        values.add("technician");
+        values.add("divorced");
+        values.add("postgraduate");
+        values.add("no");
+        values.add("1904");
+        values.add("yes");
+        values.add("yes");
+        values.add("unknown");
+        values.add("7");
+        values.add("may");
+        values.add("280");
+        values.add("3");
+        values.add("-1");
+        values.add("0");
+        values.add("unknown");
+        values.add("unknown");
+
+        return new TelephoneCall(example.getFieldNames(), values);
+    }
+
     private static double evaluateTheCallAndGetBiggestScore(double biggestScore, OnlineLogisticRegression lr, Auc eval, TelephoneCall call) {
         final double score = lr.classifyScalar(call.asVector());
         eval.add(call.getTarget(), score);
         if (score > biggestScore) {
-            System.out.println(" score: " + score + " accuracy " + eval.auc() + " call fields: " + call.getFields());
+            System.out.println("### SCORE > BIGGESTSCORE ### score: " + score + " accuracy " + eval.auc() + " call fields: " + call.getFields());
             biggestScore = score;
         }
         return biggestScore;

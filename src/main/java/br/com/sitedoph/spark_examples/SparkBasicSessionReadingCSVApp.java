@@ -93,37 +93,51 @@ public class SparkBasicSessionReadingCSVApp {
         Dataset<Row> controlledTestPredictions = model.transform(testData);
 
         // Select (prediction, true label) and compute test error.
-        RegressionEvaluator evaluator = new RegressionEvaluator()
+        RegressionEvaluator evaluatorRMSE = new RegressionEvaluator()
                 .setLabelCol("indexed-time")
                 .setPredictionCol("prediction")
                 .setMetricName("rmse");
-        double rmse = evaluator.evaluate(controlledTestPredictions);
+        double rmse = evaluatorRMSE.evaluate(controlledTestPredictions);
         System.out.println("Root Mean Squared Error (RMSE) on test data = " + rmse);
+
+        RegressionEvaluator evaluatorMAE = new RegressionEvaluator()
+                .setLabelCol("indexed-time")
+                .setPredictionCol("prediction")
+                .setMetricName("mae");
+        double mae = evaluatorMAE.evaluate(controlledTestPredictions);
+        System.out.println("Mean Absolute Error (MAE) on test data = " + mae);
+
+        RegressionEvaluator evaluatorMSE = new RegressionEvaluator()
+                .setLabelCol("indexed-time")
+                .setPredictionCol("prediction")
+                .setMetricName("mse");
+        double mse = evaluatorMSE.evaluate(controlledTestPredictions);
+        System.out.println("(MSE) on test data = " + mse);
 
         GBTRegressionModel gbtModel = (GBTRegressionModel) (model.stages()[1]);
         System.out.println("Learned regression GBT model:\n" + gbtModel.toDebugString());
 
         // Select example rows to display.
-        controlledTestPredictions.select("id", "name", "gender", "uf", "time", "indexed-time", "prediction").show(300);
+        controlledTestPredictions.select("id", "name", "gender", "indexed-gender", "age", "uf", "indexed-uf", "time", "indexed-time", "prediction", "features")
+                                 .show(300);
         /*
+            Root Mean Squared Error (RMSE) on test data = 1.1724134725228308
             comparing the real with the predicted:
-            +----+-------------------+------+---+-----------+------------+----------+
-            |  id|               name|gender| uf|       time|indexed-time|prediction|
-            +----+-------------------+------+---+-----------+------------+----------+
-            | 494|    Jennifer Hunter|Female| GO|  palmeiras|         0.0|       0.0|
-            | 161|        Jason Ortiz|  Male| SC|     santos|         1.0|       1.0|
-            | 526|     William Hughes|  Male| SC|chapecoense|         2.0|       2.0|
-            | 761|    Stephanie White|Female| GO|     santos|         1.0|       1.0|
-            | 791|       Barbara Wood|Female| MG|  palmeiras|         0.0|       0.0|
-            | 408|     Jeffrey Hudson|  Male| DF|  palmeiras|         0.0|       0.0|
-            | 694|   Walter Armstrong|  Male| SC|     santos|         1.0|       1.0|
-            | 717|     Benjamin Perez|  Male| SC|     santos|         1.0|       1.0|
-            | 929|   Aaron Richardson|  Male| MG|     santos|         1.0|       1.0|
-            |  12|      Matthew Mccoy|  Male| MG|  palmeiras|         0.0|       0.0|
-            | 378|         Jose Jones|  Male| SC|  palmeiras|         0.0|       0.0|
-            | 538|Stephanie Henderson|Female| DF|   cruzeiro|         3.0|       3.0|
-            | 124|  Joshua Richardson|  Male| MG|     santos|         1.0|       1.0|
-            +----+-------------------+------+---+-----------+------------+----------+
+            +---+-------------------+------+--------------+---+---+----------+-----------+------------+--------------------+---------------+
+            | id|               name|gender|indexed-gender|age| uf|indexed-uf|       time|indexed-time|          prediction|       features|
+            +---+-------------------+------+--------------+---+---+----------+-----------+------------+--------------------+---------------+
+            |161|        Jason Ortiz|  Male|           1.0|  1| SC|       1.0|     santos|         1.0|  0.9651456444206081|  [1.0,1.0,1.0]|
+            |526|     William Hughes|  Male|           1.0|  1| SC|       1.0|chapecoense|         2.0|  0.9651456444206081|  [1.0,1.0,1.0]|
+            |465|      Christina Cox|Female|           0.0|  2| MG|       2.0|chapecoense|         2.0|  1.3620207757491984|  [0.0,2.0,2.0]|
+            |694|   Walter Armstrong|  Male|           1.0|  2| SC|       1.0|     santos|         1.0|  0.9651456444206081|  [1.0,1.0,2.0]|
+            |717|     Benjamin Perez|  Male|           1.0|  2| SC|       1.0|     santos|         1.0|  0.9651456444206081|  [1.0,1.0,2.0]|
+            |786|      Roger Freeman|  Male|           1.0|  2| DF|       3.0|   cruzeiro|         3.0|   1.517759840088324|  [1.0,3.0,2.0]|
+            |800|     Martin Collins|  Male|           1.0|  2| MG|       2.0|  palmeiras|         0.0|  1.7410534047082629|  [1.0,2.0,2.0]|
+            |991|        Daniel Ward|  Male|           1.0|  2| GO|       0.0|chapecoense|         2.0|  0.6845786549541729|  [1.0,0.0,2.0]|
+            | 12|      Matthew Mccoy|  Male|           1.0|  3| MG|       2.0|  palmeiras|         0.0|  1.4357731028323633|  [1.0,2.0,3.0]|
+            |360|      Brandon Ramos|  Male|           1.0|  3| DF|       3.0|chapecoense|         2.0|  1.9015427874504471|  [1.0,3.0,3.0]|
+            |523|          John King|  Male|           1.0|  3| MG|       2.0|  palmeiras|         0.0|  1.4357731028323633|  [1.0,2.0,3.0]|
+            |819|        Bobby Lynch|  Male|           1.0|  3| DF|       3.0|chapecoense|         2.0|  1.9015427874504471|  [1.0,3.0,3.0]|
          */
 
 //        //TODO: Making predictions with unknown data:
@@ -191,7 +205,15 @@ public class SparkBasicSessionReadingCSVApp {
     private static Dataset<Row> createFeaturesVector(Dataset<Row> data) {
         // Create a vector from columns. Name the resulting vector as "features"
         VectorAssembler vectorAssembler = new VectorAssembler();
-        vectorAssembler.setInputCols(featuresNumericColumns.toArray(new String[0])).setOutputCol("features");
+        String[] featuresWithoutTeam = new String[featuresNumericColumns.size() - 1];
+        int i = 0;
+        for (String column : featuresNumericColumns) {
+            if (!column.equals("indexed-time")) {
+                featuresWithoutTeam[i] = column;
+                i++;
+            }
+        }
+        vectorAssembler.setInputCols(featuresWithoutTeam).setOutputCol("features");
         data = vectorAssembler.transform(data);
         return data;
     }

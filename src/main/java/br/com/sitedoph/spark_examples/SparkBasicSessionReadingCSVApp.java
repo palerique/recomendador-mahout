@@ -92,9 +92,6 @@ public class SparkBasicSessionReadingCSVApp {
         // Make controlledTestPredictions.
         Dataset<Row> controlledTestPredictions = model.transform(testData);
 
-        // Select example rows to display.
-        controlledTestPredictions.select("prediction", "indexed-time", "time", "features").show(5);
-
         // Select (prediction, true label) and compute test error.
         RegressionEvaluator evaluator = new RegressionEvaluator()
                 .setLabelCol("indexed-time")
@@ -106,29 +103,51 @@ public class SparkBasicSessionReadingCSVApp {
         GBTRegressionModel gbtModel = (GBTRegressionModel) (model.stages()[1]);
         System.out.println("Learned regression GBT model:\n" + gbtModel.toDebugString());
 
-        //Making predictions with unknown data:
+        // Select example rows to display.
+        controlledTestPredictions.select("id", "name", "gender", "uf", "time", "indexed-time", "prediction").show(300);
+        /*
+            comparing the real with the predicted:
+            +----+-------------------+------+---+-----------+------------+----------+
+            |  id|               name|gender| uf|       time|indexed-time|prediction|
+            +----+-------------------+------+---+-----------+------------+----------+
+            | 494|    Jennifer Hunter|Female| GO|  palmeiras|         0.0|       0.0|
+            | 161|        Jason Ortiz|  Male| SC|     santos|         1.0|       1.0|
+            | 526|     William Hughes|  Male| SC|chapecoense|         2.0|       2.0|
+            | 761|    Stephanie White|Female| GO|     santos|         1.0|       1.0|
+            | 791|       Barbara Wood|Female| MG|  palmeiras|         0.0|       0.0|
+            | 408|     Jeffrey Hudson|  Male| DF|  palmeiras|         0.0|       0.0|
+            | 694|   Walter Armstrong|  Male| SC|     santos|         1.0|       1.0|
+            | 717|     Benjamin Perez|  Male| SC|     santos|         1.0|       1.0|
+            | 929|   Aaron Richardson|  Male| MG|     santos|         1.0|       1.0|
+            |  12|      Matthew Mccoy|  Male| MG|  palmeiras|         0.0|       0.0|
+            | 378|         Jose Jones|  Male| SC|  palmeiras|         0.0|       0.0|
+            | 538|Stephanie Henderson|Female| DF|   cruzeiro|         3.0|       3.0|
+            | 124|  Joshua Richardson|  Male| MG|     santos|         1.0|       1.0|
+            +----+-------------------+------+---+-----------+------------+----------+
+         */
 
-        log.info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-        log.info("%%%%%%%%%%%    Starting Predictions With Unknown Data    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-        log.info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-
-        Dataset<Row> semTimeDS = loadAndParseCSV("src/main/resources/people2-sem-time.csv");
-//        semTimeDS = convertStringColumnsToNumeric(semTimeDS);
-//        semTimeDS = createFeaturesVector(semTimeDS);
-
-        semTimeDS.show(100);
-
-        final Dataset<Row> semTimePredictedDS = model.transform(semTimeDS);
-
-        log.info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-        log.info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-        log.info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-
-        semTimePredictedDS.show(100);
-
-        log.info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-        log.info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-        log.info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+//        //TODO: Making predictions with unknown data:
+//
+//        log.info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+//        log.info("%%%%%%%%%%%    Starting Predictions With Unknown Data    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+//        log.info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+//
+//        Dataset<Row> semTimeDS = loadAndParseCSV("src/main/resources/people2-sem-time.csv");
+////        semTimeDS = convertStringColumnsToNumeric(semTimeDS);
+////        semTimeDS = createFeaturesVector(semTimeDS);
+//        semTimeDS.show(100);
+//
+//        final Dataset<Row> semTimePredictedDS = model.transform(semTimeDS);
+//
+//        log.info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+//        log.info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+//        log.info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+//
+//        semTimePredictedDS.show(100);
+//
+//        log.info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+//        log.info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+//        log.info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
     }
 
     private static Dataset<Row> loadAndParseCSV(String path) {
